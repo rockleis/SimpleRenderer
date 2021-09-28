@@ -17,7 +17,7 @@ GLuint  program;
 GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
 GLint   attrPositionLocation,attrColorLocation;
 // m v p 矩阵
-glm::mat4 modelMatrix,viewMatrix,projectionMatrix;
+glm::mat4 modelMatrix,viewMatrix,projectionMatrix, modelMatrix2;
 
 unsigned char * LoadFileContent(const char *path,int&filesize){
     unsigned char *filecontent=nullptr;
@@ -40,7 +40,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
 ){
     sAssetManager = AAssetManager_fromJava(env,am);
     __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"Init");
-    glClearColor(0.1f,0.4f,0.1f,1.0f);
+    glClearColor(0.8f,0.4f,0.1f,1.0f);
 
     Vertice vertices[4];
     vertices[0].mPosition[0] = -50.0f; //x
@@ -79,7 +79,8 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[3].mColor[2] = 0.0f;
     vertices[3].mColor[3] = 1.0f;
 
-    modelMatrix=glm::translate(20.0f,0.0f,0.1f);
+    modelMatrix=glm::translate(0.0f,0.0f,-1.0f);
+    modelMatrix2=glm::translate(50.0f,0.0f,-2.0f);
 
 //    使用glGenBuffers()生成新缓存对象。
 //    使用glBindBuffer()绑定缓存对象。
@@ -137,6 +138,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
     glUseProgram(program);
+    glEnable(GL_DEPTH_TEST);
     glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
     glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(projectionMatrixLocation,1,GL_FALSE,glm::value_ptr(projectionMatrix));
@@ -149,6 +151,9 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     }
 
     //glDrawArrays(GL_TRIANGLES,0,3);
+    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+
+    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix2));
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glUseProgram(0);
