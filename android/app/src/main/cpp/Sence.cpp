@@ -42,9 +42,9 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"Init");
     glClearColor(0.1f,0.4f,0.1f,1.0f);
 
-    Vertice vertices[3];
-    vertices[0].mPosition[0] = -0.5f; //x
-    vertices[0].mPosition[1] = -0.5f; //y
+    Vertice vertices[4];
+    vertices[0].mPosition[0] = -50.0f; //x
+    vertices[0].mPosition[1] = -50.0f; //y
     vertices[0].mPosition[2] = -2.0f; //z
     vertices[0].mPosition[3] = 1.0f; //w
     vertices[0].mColor[0] = 1.0f;
@@ -52,8 +52,8 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[0].mColor[2] = 0.0f;
     vertices[0].mColor[3] = 1.0f;
 
-    vertices[1].mPosition[0] =  0.5f; //x
-    vertices[1].mPosition[1] = -0.5f; //y
+    vertices[1].mPosition[0] =  50.0f; //x
+    vertices[1].mPosition[1] = -50.0f; //y
     vertices[1].mPosition[2] = -2.0f; //z
     vertices[1].mPosition[3] = 1.0f; //w
     vertices[1].mColor[0] = 0.0f;
@@ -61,8 +61,8 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[1].mColor[2] = 1.0f;
     vertices[1].mColor[3] = 1.0f;
 
-    vertices[2].mPosition[0] = 0.0f; //x
-    vertices[2].mPosition[1] = 0.5f; //y
+    vertices[2].mPosition[0] = -50.0f; //x
+    vertices[2].mPosition[1] = 50.0f; //y
     vertices[2].mPosition[2] = -2.0f; //z
     vertices[2].mPosition[3] = 1.0f; //w
     vertices[2].mColor[0] = 0.0f;
@@ -70,6 +70,16 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[2].mColor[2] = 0.0f;
     vertices[2].mColor[3] = 1.0f;
 
+    vertices[3].mPosition[0] = 50.0f; //x
+    vertices[3].mPosition[1] = 50.0f; //y
+    vertices[3].mPosition[2] = -2.0f; //z
+    vertices[3].mPosition[3] = 1.0f; //w
+    vertices[3].mColor[0] = 0.0f;
+    vertices[3].mColor[1] = 1.0f;
+    vertices[3].mColor[2] = 0.0f;
+    vertices[3].mColor[3] = 1.0f;
+
+    modelMatrix=glm::translate(20.0f,0.0f,0.1f);
 
 //    使用glGenBuffers()生成新缓存对象。
 //    使用glBindBuffer()绑定缓存对象。
@@ -77,8 +87,8 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     //GLuint vbo;
     glGenBuffers(1,&vbo);
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3, nullptr,GL_STATIC_DRAW);//alloc gpu
-    glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(Vertice)*3,vertices);//cpu -> gpu
+    glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*4, nullptr,GL_STATIC_DRAW);//alloc gpu
+    glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(Vertice)*4,vertices);//cpu -> gpu
     //glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3,vertices,GL_STATIC_DRAW);//cpu -> gpu
     glBindBuffer(GL_ARRAY_BUFFER,0);
 
@@ -113,7 +123,12 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(OnViewportChanged)(
                            glm::vec3(0.0,1.0f,0.0f));
 
     //OpenGL默认使用右手坐标系
-    projectionMatrix=glm::perspective(45.0f,float(width)/float(height),0.1f,1000.0f);
+    //projectionMatrix=glm::perspective(45.0f,float(width)/float(height),0.1f,1000.0f);
+
+    //正交投影，适合2dui
+    float half_width=float(width)/2.0f;
+    float half_height=float(height)/2.0f;
+    projectionMatrix=glm::ortho(-half_width,half_width,-half_height,half_height,0.1f,100.0f);
 }
 extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
         JNIEnv*env,
