@@ -11,14 +11,16 @@ cmake_minimum_required(VERSION 3.4.1)
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             Alices #Alice.so
+            Alices #Alice.so
 
-             # Sets the library as a shared library.
-             SHARED
+            # Sets the library as a shared library.
+            SHARED
 
-             # Provides a relative path to your source file(s).
-             Sence.cpp
-             native-lib.cpp)
+            # Provides a relative path to your source file(s).
+            Utils.cpp
+            Sence.cpp
+            native-lib.cpp
+            )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
