@@ -88,23 +88,8 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
 
     //描述了每三个点顺序绘制一个三角形， 节省点 常用来做四边形绘制
     unsigned short indexes[]={ 0,1,2,1,3,2};
-    glGenBuffers(1,&ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned short)*6, nullptr,GL_STATIC_DRAW);//alloc gpu
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned short)*6,indexes);//cpu -> gpu
-    //glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3,vertices,GL_STATIC_DRAW);//cpu -> gpu
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-
-//    使用glGenBuffers()生成新缓存对象。
-//    使用glBindBuffer()绑定缓存对象。
-//    使用glBufferData()将顶点数据拷贝到缓存对象中。
-    //GLuint vbo;
-    glGenBuffers(1,&vbo);
-    glBindBuffer(GL_ARRAY_BUFFER,vbo);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*4, nullptr,GL_STATIC_DRAW);//alloc gpu
-    glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(Vertice)*4,vertices);//cpu -> gpu
-    //glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3,vertices,GL_STATIC_DRAW);//cpu -> gpu
-    glBindBuffer(GL_ARRAY_BUFFER,0);
+    ibo=CreateBufferObject(GL_ELEMENT_ARRAY_BUFFER,indexes,sizeof(unsigned short)*6,GL_STATIC_DRAW);
+    vbo=CreateBufferObject(GL_ARRAY_BUFFER,vertices,sizeof(Vertice)*4,GL_STATIC_DRAW);
 
     //uniform 一致的， 所有的点共用一致的举证
     //attribute 数据跟着顶点走，归纳为顶点属性

@@ -18,4 +18,7 @@ GLuint CreateProgram(GLuint vertex_shader,GLuint fragment_shader);
 GLuint CreateStandardProgram(const char *vertex_shader_path,const char * fragment_shader_path);
 float GetFrameTime();
 
+GLuint CreateBufferObject(GLenum type,void * data,int size,GLenum usage);
+void UpdateBufferObject(GLuint object,GLenum type,void * data,int size,int offset=0);
+
 #endif //RENDER_UTILS_H
