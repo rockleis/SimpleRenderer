@@ -94,7 +94,8 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(OnViewportChanged)(
 
     __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"OnViewportChanged %dx%d",width,height);
     glViewport(0,0,width,height);
-    viewMatrix=glm::lookAt(glm::vec3(0.0f,0.0f,0.0f),
+    //右手坐标系，z轴朝外正方向
+    viewMatrix=glm::lookAt(glm::vec3(0.0f,0.0f,0.5f),
                            glm::vec3(0.0,0.0,-1.0f),
                            glm::vec3(0.0,1.0f,0.0f));
 
@@ -106,4 +107,15 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
         jobject MainActivity
 ){
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+    glUseProgram(program);
+    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
+    glUniformMatrix4fv(projectionMatrixLocation,1,GL_FALSE,glm::value_ptr(projectionMatrix));
+    //set attribute
+    glEnableVertexAttribArray(attrPositionLocation);
+    glVertexAttribPointer(attrPositionLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),0);
+    glDrawArrays(GL_TRIANGLES,0,3);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glUseProgram(0);
 }
