@@ -16,6 +16,8 @@ GLuint  vbo;//vertex buffer object
 GLuint  program;
 GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
 GLint   attrPositionLocation;
+// m v p 矩阵
+glm::mat4 modelMatrix,viewMatrix,projectionMatrix;
 
 unsigned char * LoadFileContent(const char *path,int&filesize){
     unsigned char *filecontent=nullptr;
@@ -83,7 +85,21 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(OnViewportChanged)(
         JNIEnv*env,
         jobject MainActivity,jint width,jint height
 ){
+
+//    一个一个来,首先得设置gluPerspective,来看看它的参数都表示什么意思
+//    fovy,这个最难理解,我的理解是,眼睛睁开的角度,即,视角的大小,如果设置为0,相当你闭上眼睛了,所以什么也看不到,如果为180,那么可以认为你的视界很广阔,
+//            aspect,这个好理解,就是实际窗口的纵横比,即x/y
+//    zNear,这个呢,表示你近处,的裁面,
+//            zFar表示远处的裁面,
+
+    __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"OnViewportChanged %dx%d",width,height);
     glViewport(0,0,width,height);
+    viewMatrix=glm::lookAt(glm::vec3(0.0f,0.0f,0.0f),
+                           glm::vec3(0.0,0.0,-1.0f),
+                           glm::vec3(0.0,1.0f,0.0f));
+
+    //OpenGL默认使用右手坐标系
+    projectionMatrix=glm::perspective(45.0f,float(width)/float(height),0.1f,1000.0f);
 }
 extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
         JNIEnv*env,
