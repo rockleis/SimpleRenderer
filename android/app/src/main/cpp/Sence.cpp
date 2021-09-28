@@ -12,6 +12,11 @@
 #define JNI_RENDER(FUNC) JNI_METHOD1(COM_ROCK_RENDER_CLASS_NAME,FUNC)
 
 static AAssetManager *sAssetManager= nullptr;
+GLuint  vbo;//vertex buffer object
+GLuint  program;
+GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
+GLint   attrPositionLocation;
+
 unsigned char * LoadFileContent(const char *path,int&filesize){
     unsigned char *filecontent=nullptr;
     filesize=0;
@@ -55,13 +60,23 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
 //    使用glGenBuffers()生成新缓存对象。
 //    使用glBindBuffer()绑定缓存对象。
 //    使用glBufferData()将顶点数据拷贝到缓存对象中。
-    GLuint vbo;
+    //GLuint vbo;
     glGenBuffers(1,&vbo);
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
     glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3, nullptr,GL_STATIC_DRAW);//alloc gpu
     glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(Vertice)*3,vertices);//cpu -> gpu
     //glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3,vertices,GL_STATIC_DRAW);//cpu -> gpu
     glBindBuffer(GL_ARRAY_BUFFER,0);
+
+    //uniform 一致的， 所有的点共用一致的举证
+    //attribute 数据跟着顶点走，归纳为顶点属性
+    program=CreateStandardProgram("test.vs","test.fs");
+    attrPositionLocation=glGetAttribLocation(program,"position");
+    modelMatrixLocation=glGetUniformLocation(program,"U_ModelMatrix");
+    viewMatrixLocation=glGetUniformLocation(program,"U_ViewMatrix");
+    projectionMatrixLocation=glGetUniformLocation(program,"U_ProjectionMatrix");
+    __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"%d,%d,%d,%d",
+                        attrPositionLocation,modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation);
 
 }
 extern "C" JNIEXPORT void JNICALL JNI_RENDER(OnViewportChanged)(
