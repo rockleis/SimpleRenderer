@@ -64,3 +64,17 @@ GLuint CreateStandardProgram(const char *vertex_shader_path,const char * fragmen
     glDeleteShader(fsshader);
     return program;
 }
+
+GLuint CreateBufferObject(GLenum type,void * data,int size,GLenum usage){
+    GLuint object_to_ret;
+    glGenBuffers(1,&object_to_ret);
+    glBindBuffer(type,object_to_ret);
+    glBufferData(type,size,data,usage);//cpu -> gpu
+    glBindBuffer(type,0);
+    return object_to_ret;
+}
+void UpdateBufferObject(GLuint object,GLenum type,void * data,int size,int offset){
+    glBindBuffer(type,object);
+    glBufferSubData(type,offset,size,data);//cpu -> gpu
+    glBindBuffer(type,0);
+}
