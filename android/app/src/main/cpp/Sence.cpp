@@ -13,7 +13,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
         JNIEnv*env,
         jobject MainActivity
 ){
-    glClearColor(0.6f,0.4f,0.1f,1.0f);
+    glClearColor(0.1f,0.4f,0.1f,1.0f);
 }
 extern "C" JNIEXPORT void JNICALL JNI_RENDER(OnViewportChanged)(
         JNIEnv*env,
