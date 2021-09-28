@@ -78,3 +78,44 @@ void UpdateBufferObject(GLuint object,GLenum type,void * data,int size,int offse
     glBufferSubData(type,offset,size,data);//cpu -> gpu
     glBindBuffer(type,0);
 }
+
+void SwapPixelRB(unsigned char * pixel,int pixel_data_offset){//bgr -> rgb
+    unsigned  char b=pixel[pixel_data_offset];
+    pixel[pixel_data_offset]=pixel[pixel_data_offset+2];
+    pixel[pixel_data_offset+2]=b;
+}
+unsigned char * DecodeBMP(unsigned char *bmp_file_content,int&width,int&height){
+    if(0x4D42==*((unsigned short*)bmp_file_content)){
+        int pixel_data_offset=*((int*)(bmp_file_content+10));
+        width=*((int*)(bmp_file_content+18));
+        height=*((int*)(bmp_file_content+22));
+        unsigned char * pixel=bmp_file_content+pixel_data_offset;
+        int pixel_data_count=width*height;
+        for (int i = 0; i < pixel_data_count; ++i) {
+            SwapPixelRB(pixel,i*3);
+        }
+        return pixel;
+    }
+    return nullptr;
+}
+GLuint CreateTexture2D(void*pixel,int width,int height,GLenum gpu_format,GLenum cpu_format){
+    GLuint texture;
+    glGenTextures(1,&texture);
+    glBindTexture(GL_TEXTURE_2D,texture);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D,0,gpu_format,width,height,0,cpu_format,GL_UNSIGNED_BYTE,pixel);
+    glBindTexture(GL_TEXTURE_2D,0);
+    return texture;
+}
+GLuint CreateTextureFromFile(const char *path){
+    int file_size=0;
+    unsigned char* filecontent=LoadFileContent(path,file_size);
+    int image_width,image_height;
+    unsigned char * rgb_pixel=DecodeBMP(filecontent,image_width,image_height);
+    GLuint texture=CreateTexture2D(rgb_pixel,image_width,image_height,GL_RGB,GL_RGB);
+    delete [] filecontent;
+    return texture;
+}

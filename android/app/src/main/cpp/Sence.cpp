@@ -17,7 +17,9 @@ GLuint  ibo;
 
 GLuint  program;
 GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
-GLint   attrPositionLocation,attrColorLocation;
+GLint   attrPositionLocation,attrTexCoordLocation;
+GLuint  texture;
+
 // m v p 矩阵
 glm::mat4 modelMatrix,viewMatrix,projectionMatrix, modelMatrix2;
 
@@ -45,41 +47,41 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     glClearColor(0.8f,0.4f,0.1f,1.0f);
 
     Vertice vertices[4];
-    vertices[0].mPosition[0] = -50.0f; //x
-    vertices[0].mPosition[1] = -50.0f; //y
+    vertices[0].mPosition[0] = -100.0f; //x
+    vertices[0].mPosition[1] = -100.0f; //y
     vertices[0].mPosition[2] = -2.0f; //z
     vertices[0].mPosition[3] = 1.0f; //w
-    vertices[0].mColor[0] = 1.0f;
-    vertices[0].mColor[1] = 1.0f;
-    vertices[0].mColor[2] = 0.0f;
-    vertices[0].mColor[3] = 1.0f;
+    vertices[0].mTexcoord[0]=0.0f;//u
+    vertices[0].mTexcoord[1]=0.0f;//v
+    vertices[0].mTexcoord[2]=0.0f;//
+    vertices[0].mTexcoord[3]=0.0f;//
 
-    vertices[1].mPosition[0] =  50.0f; //x
-    vertices[1].mPosition[1] = -50.0f; //y
+    vertices[1].mPosition[0] =  100.0f; //x
+    vertices[1].mPosition[1] = -100.0f; //y
     vertices[1].mPosition[2] = -2.0f; //z
     vertices[1].mPosition[3] = 1.0f; //w
-    vertices[1].mColor[0] = 0.0f;
-    vertices[1].mColor[1] = 1.0f;
-    vertices[1].mColor[2] = 1.0f;
-    vertices[1].mColor[3] = 1.0f;
+    vertices[1].mTexcoord[0]=1.0f;//u
+    vertices[1].mTexcoord[1]=0.0f;//v
+    vertices[1].mTexcoord[2]=0.0f;//
+    vertices[1].mTexcoord[3]=0.0f;//
 
-    vertices[2].mPosition[0] = -50.0f; //x
-    vertices[2].mPosition[1] = 50.0f; //y
+    vertices[2].mPosition[0] = -100.0f; //x
+    vertices[2].mPosition[1] = 100.0f; //y
     vertices[2].mPosition[2] = -2.0f; //z
     vertices[2].mPosition[3] = 1.0f; //w
-    vertices[2].mColor[0] = 0.0f;
-    vertices[2].mColor[1] = 1.0f;
-    vertices[2].mColor[2] = 0.0f;
-    vertices[2].mColor[3] = 1.0f;
+    vertices[2].mTexcoord[0]=0.0f;//u
+    vertices[2].mTexcoord[1]=1.0f;//v
+    vertices[2].mTexcoord[2]=0.0f;//
+    vertices[2].mTexcoord[3]=0.0f;//
 
-    vertices[3].mPosition[0] = 50.0f; //x
-    vertices[3].mPosition[1] = 50.0f; //y
+    vertices[3].mPosition[0] = 100.0f; //x
+    vertices[3].mPosition[1] = 100.0f; //y
     vertices[3].mPosition[2] = -2.0f; //z
     vertices[3].mPosition[3] = 1.0f; //w
-    vertices[3].mColor[0] = 0.0f;
-    vertices[3].mColor[1] = 1.0f;
-    vertices[3].mColor[2] = 0.0f;
-    vertices[3].mColor[3] = 1.0f;
+    vertices[3].mTexcoord[0]=1.0f;//u
+    vertices[3].mTexcoord[1]=1.0f;//v
+    vertices[3].mTexcoord[2]=0.0f;//
+    vertices[3].mTexcoord[3]=0.0f;//
 
     modelMatrix=glm::translate(0.0f,0.0f,-1.0f);
     modelMatrix=glm::scale(modelMatrix,glm::vec3(1.30, 1.30, 1.30));
@@ -95,10 +97,13 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     //attribute 数据跟着顶点走，归纳为顶点属性
     program=CreateStandardProgram("test.vs","test.fs");
     attrPositionLocation=glGetAttribLocation(program,"position");
-    attrColorLocation=glGetAttribLocation(program,"color");
+    attrTexCoordLocation=glGetAttribLocation(program,"texcoord");
     modelMatrixLocation=glGetUniformLocation(program,"U_ModelMatrix");
     viewMatrixLocation=glGetUniformLocation(program,"U_ViewMatrix");
     projectionMatrixLocation=glGetUniformLocation(program,"U_ProjectionMatrix");
+
+    texture=CreateTextureFromFile("front.bmp");
+
     __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"%d,%d,%d,%d",
                         attrPositionLocation,modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation);
 
@@ -137,6 +142,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
     glUseProgram(program);
     glEnable(GL_DEPTH_TEST);
+    glBindTexture(GL_TEXTURE_2D,texture);
     glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
     glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(projectionMatrixLocation,1,GL_FALSE,glm::value_ptr(projectionMatrix));
@@ -144,16 +150,11 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     {  //把点数据从vbo中找出来，设置给gpu
         glEnableVertexAttribArray(attrPositionLocation);
         glVertexAttribPointer(attrPositionLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),0);
-        glEnableVertexAttribArray(attrColorLocation);
-        glVertexAttribPointer(attrColorLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),(void*)(sizeof(float)*4));
+        glEnableVertexAttribArray(attrTexCoordLocation);
+        glVertexAttribPointer(attrTexCoordLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),(void*)(sizeof(float)*4));
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
-    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
-    //glDrawArrays(GL_TRIANGLES,0,3);
-    //glDrawArrays(GL_TRIANGLE_STRIP,0,4);
-
-    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix2));
     glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
 
 

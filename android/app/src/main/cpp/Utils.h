@@ -9,7 +9,7 @@
 
 struct Vertice{
     float mPosition[4];//x,y,z,w
-    float mColor[4];//r,g,b,a
+    float mTexcoord[4];
 };
 
 unsigned  char* LoadFileContent(const char* path, int & filesize);
@@ -20,5 +20,9 @@ float GetFrameTime();
 
 GLuint CreateBufferObject(GLenum type,void * data,int size,GLenum usage);
 void UpdateBufferObject(GLuint object,GLenum type,void * data,int size,int offset=0);
+
+
+unsigned char * DecodeBMP(unsigned char *bmp_file_content,int&width,int&height);
+GLuint CreateTextureFromFile(const char *path);
 
 #endif //RENDER_UTILS_H
