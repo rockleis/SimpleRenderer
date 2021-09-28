@@ -13,6 +13,8 @@
 
 static AAssetManager *sAssetManager= nullptr;
 GLuint  vbo;//vertex buffer object
+GLuint  ibo;
+
 GLuint  program;
 GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
 GLint   attrPositionLocation,attrColorLocation;
@@ -80,7 +82,18 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[3].mColor[3] = 1.0f;
 
     modelMatrix=glm::translate(0.0f,0.0f,-1.0f);
+    modelMatrix=glm::scale(modelMatrix,glm::vec3(1.30, 1.30, 1.30));
+
     modelMatrix2=glm::translate(50.0f,0.0f,-2.0f);
+
+    //描述了每三个点顺序绘制一个三角形， 节省点 常用来做四边形绘制
+    unsigned short indexes[]={ 0,1,2,1,3,2};
+    glGenBuffers(1,&ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned short)*6, nullptr,GL_STATIC_DRAW);//alloc gpu
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned short)*6,indexes);//cpu -> gpu
+    //glBufferData(GL_ARRAY_BUFFER,sizeof(Vertice)*3,vertices,GL_STATIC_DRAW);//cpu -> gpu
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
 //    使用glGenBuffers()生成新缓存对象。
 //    使用glBindBuffer()绑定缓存对象。
@@ -150,11 +163,15 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
         glVertexAttribPointer(attrColorLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),(void*)(sizeof(float)*4));
     }
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
+    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
     //glDrawArrays(GL_TRIANGLES,0,3);
-    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    //glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
     glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix2));
-    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
+
+
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glUseProgram(0);
 }
