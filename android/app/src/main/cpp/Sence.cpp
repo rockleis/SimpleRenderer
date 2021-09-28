@@ -142,7 +142,9 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
     glUseProgram(program);
     glEnable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,texture);
+    glUniform1i(glGetUniformLocation(program,"U_Texture"),0);
     glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
     glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(projectionMatrixLocation,1,GL_FALSE,glm::value_ptr(projectionMatrix));
