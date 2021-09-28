@@ -12,6 +12,9 @@ struct Vertice{
 };
 
 unsigned  char* LoadFileContent(const char* path, int & filesize);
+GLuint CompileShader(GLenum shader_type,const char * source_code);
+GLuint CreateProgram(GLuint vertex_shader,GLuint fragment_shader);
+GLuint CreateStandardProgram(const char *vertex_shader_path,const char * fragment_shader_path);
 float GetFrameTime();
 
 #endif //RENDER_UTILS_H
