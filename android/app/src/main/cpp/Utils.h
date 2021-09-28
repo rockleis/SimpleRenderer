@@ -9,6 +9,7 @@
 
 struct Vertice{
     float mPosition[4];//x,y,z,w
+    float mColor[4];//r,g,b,a
 };
 
 unsigned  char* LoadFileContent(const char* path, int & filesize);

@@ -15,7 +15,7 @@ static AAssetManager *sAssetManager= nullptr;
 GLuint  vbo;//vertex buffer object
 GLuint  program;
 GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
-GLint   attrPositionLocation;
+GLint   attrPositionLocation,attrColorLocation;
 // m v p 矩阵
 glm::mat4 modelMatrix,viewMatrix,projectionMatrix;
 
@@ -47,16 +47,28 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[0].mPosition[1] = -0.5f; //y
     vertices[0].mPosition[2] = -2.0f; //z
     vertices[0].mPosition[3] = 1.0f; //w
+    vertices[0].mColor[0] = 1.0f;
+    vertices[0].mColor[1] = 1.0f;
+    vertices[0].mColor[2] = 0.0f;
+    vertices[0].mColor[3] = 1.0f;
 
     vertices[1].mPosition[0] =  0.5f; //x
     vertices[1].mPosition[1] = -0.5f; //y
     vertices[1].mPosition[2] = -2.0f; //z
     vertices[1].mPosition[3] = 1.0f; //w
+    vertices[1].mColor[0] = 0.0f;
+    vertices[1].mColor[1] = 1.0f;
+    vertices[1].mColor[2] = 1.0f;
+    vertices[1].mColor[3] = 1.0f;
 
     vertices[2].mPosition[0] = 0.0f; //x
     vertices[2].mPosition[1] = 0.5f; //y
     vertices[2].mPosition[2] = -2.0f; //z
     vertices[2].mPosition[3] = 1.0f; //w
+    vertices[2].mColor[0] = 0.0f;
+    vertices[2].mColor[1] = 1.0f;
+    vertices[2].mColor[2] = 0.0f;
+    vertices[2].mColor[3] = 1.0f;
 
 
 //    使用glGenBuffers()生成新缓存对象。
@@ -74,6 +86,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     //attribute 数据跟着顶点走，归纳为顶点属性
     program=CreateStandardProgram("test.vs","test.fs");
     attrPositionLocation=glGetAttribLocation(program,"position");
+    attrColorLocation=glGetAttribLocation(program,"color");
     modelMatrixLocation=glGetUniformLocation(program,"U_ModelMatrix");
     viewMatrixLocation=glGetUniformLocation(program,"U_ViewMatrix");
     projectionMatrixLocation=glGetUniformLocation(program,"U_ProjectionMatrix");
@@ -113,9 +126,15 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(projectionMatrixLocation,1,GL_FALSE,glm::value_ptr(projectionMatrix));
     //set attribute
-    glEnableVertexAttribArray(attrPositionLocation);
-    glVertexAttribPointer(attrPositionLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),0);
-    glDrawArrays(GL_TRIANGLES,0,3);
+    {  //把点数据从vbo中找出来，设置给gpu
+        glEnableVertexAttribArray(attrPositionLocation);
+        glVertexAttribPointer(attrPositionLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),0);
+        glEnableVertexAttribArray(attrColorLocation);
+        glVertexAttribPointer(attrColorLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),(void*)(sizeof(float)*4));
+    }
+
+    //glDrawArrays(GL_TRIANGLES,0,3);
+    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glUseProgram(0);
 }
