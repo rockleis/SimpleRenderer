@@ -3,6 +3,7 @@
 //
 
 #include "Utils.h"
+#include "stb_image_aug.h"
 
 float GetFrameTime(){
     static unsigned long long lastTime=0,currentTime=0;
@@ -77,4 +78,112 @@ void UpdateBufferObject(GLuint object,GLenum type,void * data,int size,int offse
     glBindBuffer(type,object);
     glBufferSubData(type,offset,size,data);//cpu -> gpu
     glBindBuffer(type,0);
+}
+
+void SwapPixelRB(unsigned char * pixel,int pixel_data_offset){//bgr -> rgb
+    unsigned  char b=pixel[pixel_data_offset];
+    pixel[pixel_data_offset]=pixel[pixel_data_offset+2];
+    pixel[pixel_data_offset+2]=b;
+}
+unsigned char * DecodeBMP(unsigned char *bmp_file_content,int&width,int&height){
+    if(0x4D42==*((unsigned short*)bmp_file_content)){
+        int pixel_data_offset=*((int*)(bmp_file_content+10));
+        width=*((int*)(bmp_file_content+18));
+        height=*((int*)(bmp_file_content+22));
+        unsigned char * pixel=bmp_file_content+pixel_data_offset;
+        int pixel_data_count=width*height;
+        for (int i = 0; i < pixel_data_count; ++i) {
+            SwapPixelRB(pixel,i*3);
+        }
+        return pixel;
+    }
+    return nullptr;
+}
+
+void SwapRGBPixel(unsigned char * pixel,int src0,int src1){
+    unsigned char src0_r=pixel[src0];
+    unsigned char src0_g=pixel[src0+1];
+    unsigned char src0_b=pixel[src0+2];
+    pixel[src0]=pixel[src1];
+    pixel[src0+1]=pixel[src1+1];
+    pixel[src0+2]=pixel[src1+2];
+    pixel[src1]=src0_r;
+    pixel[src1+1]=src0_g;
+    pixel[src1+2]=src0_b;
+}
+
+void SwapRGBAPixel(unsigned char * pixel,int src0,int src1){
+    unsigned char src0_r=pixel[src0];
+    unsigned char src0_g=pixel[src0+1];
+    unsigned char src0_b=pixel[src0+2];
+    unsigned char src0_a=pixel[src0+3];
+    pixel[src0]=pixel[src1];
+    pixel[src0+1]=pixel[src1+1];
+    pixel[src0+2]=pixel[src1+2];
+    pixel[src0+3]=pixel[src1+3];
+    pixel[src1]=src0_r;
+    pixel[src1+1]=src0_g;
+    pixel[src1+2]=src0_b;
+    pixel[src1+3]=src0_a;
+}
+
+void FlipImage(unsigned char * pixel,int width,int height,int channel_count){
+    int half_height=height/2;
+    for (int y = 0; y < half_height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int bottom_pixel_index=y*width+x;
+            int top_pixel_index=(height-y-1)*width+x;
+            if(channel_count==3){
+                SwapRGBPixel(pixel,top_pixel_index*3,bottom_pixel_index*3);
+            }else if(channel_count==4){
+                SwapRGBAPixel(pixel,top_pixel_index*4,bottom_pixel_index*4);
+            }
+        }
+    }
+}
+
+GLuint CreateTexture2D(void*pixel,int width,int height,GLenum gpu_format,GLenum cpu_format){
+    GLuint texture;
+    glGenTextures(1,&texture);
+    glBindTexture(GL_TEXTURE_2D,texture);
+
+    /*
+    OpenGL——纹理过滤函数glTexParameteri
+    GL_NEAREST和GL_LINEAR
+    前者表示“使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色”，
+    后者表示“使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色”。
+    前者只经过简单比较，需要运算较少，可能速度较快，
+    后者需要经过加权平均计算，其中涉及除法运算，可能速度较慢（但如果有专门的处理硬件，也可能两者速度相同）。
+    从视觉效果上看，前者效果较差，在一些情况下锯齿现象明显，后者效果会较好（但如果纹理图象本身比较大，则两者在视觉效果上就会比较接近）
+    * */
+    //GL_NEAREST
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D,0,gpu_format,width,height,0,cpu_format,GL_UNSIGNED_BYTE,pixel);
+    glBindTexture(GL_TEXTURE_2D,0);
+    return texture;
+}
+GLuint CreateTextureFromFile(const char *path){
+    int file_size=0;
+    unsigned char* filecontent=LoadFileContent(path,file_size);
+    int image_width,image_height,channel_count;
+    unsigned char * pixel= nullptr;
+    if(strcmp(path+(strlen(path)-4),".png")==0){
+        pixel=stbi_png_load_from_memory(filecontent,file_size,&image_width,&image_height,&channel_count,0);
+    }else if(strcmp(path+(strlen(path)-4),".bmp")==0){
+        pixel=stbi_bmp_load_from_memory(filecontent,file_size,&image_width,&image_height,&channel_count,0);
+    }else{
+        delete [] filecontent;
+        return 0;
+    }
+    __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"CreateTextureFromFile %dx%d %d filesize(%d)",
+                        image_width,image_height,channel_count,file_size);
+    FlipImage(pixel,image_width,image_height,channel_count);
+    GLenum pixel_format=channel_count==3?GL_RGB:GL_RGBA;
+    GLuint texture=CreateTexture2D(pixel,image_width,image_height,pixel_format,pixel_format);
+    delete [] pixel;
+    delete [] filecontent;
+    return texture;
 }
