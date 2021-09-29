@@ -84,7 +84,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[3].mTexcoord[3]=0.0f;//
 
     modelMatrix=glm::translate(0.0f,0.0f,-1.0f);
-    modelMatrix=glm::scale(modelMatrix,glm::vec3(4.0, 4.0, 1.30));
+    //modelMatrix=glm::scale(modelMatrix,glm::vec3(4.0, 4.0, 1.30));
 
     modelMatrix2=glm::translate(50.0f,0.0f,-2.0f);
 
@@ -142,8 +142,10 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
     glBindBuffer(GL_ARRAY_BUFFER,vbo);
     glUseProgram(program);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,texture);
+    glBindTexture(GL_TEXTURE_2D,texture); 
     glUniform1i(glGetUniformLocation(program,"U_Texture"),0);
     glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
     glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
@@ -158,6 +160,9 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
     glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
+
+    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix2));
+    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0); //dc
 
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
