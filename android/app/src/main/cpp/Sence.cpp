@@ -84,7 +84,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[3].mTexcoord[3]=0.0f;//
 
     modelMatrix=glm::translate(0.0f,0.0f,-1.0f);
-    modelMatrix=glm::scale(modelMatrix,glm::vec3(1.30, 1.30, 1.30));
+    modelMatrix=glm::scale(modelMatrix,glm::vec3(4.0, 4.0, 1.30));
 
     modelMatrix2=glm::translate(50.0f,0.0f,-2.0f);
 

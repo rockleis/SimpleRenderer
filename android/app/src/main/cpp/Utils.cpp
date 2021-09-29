@@ -102,6 +102,17 @@ GLuint CreateTexture2D(void*pixel,int width,int height,GLenum gpu_format,GLenum 
     GLuint texture;
     glGenTextures(1,&texture);
     glBindTexture(GL_TEXTURE_2D,texture);
+
+    /*
+    OpenGL——纹理过滤函数glTexParameteri
+    GL_NEAREST和GL_LINEAR
+    前者表示“使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色”，
+    后者表示“使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色”。
+    前者只经过简单比较，需要运算较少，可能速度较快，
+    后者需要经过加权平均计算，其中涉及除法运算，可能速度较慢（但如果有专门的处理硬件，也可能两者速度相同）。
+    从视觉效果上看，前者效果较差，在一些情况下锯齿现象明显，后者效果会较好（但如果纹理图象本身比较大，则两者在视觉效果上就会比较接近）
+    * */
+    //GL_NEAREST
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
