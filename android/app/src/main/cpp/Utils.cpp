@@ -3,6 +3,7 @@
 //
 
 #include "Utils.h"
+#include "stb_image_aug.h"
 
 float GetFrameTime(){
     static unsigned long long lastTime=0,currentTime=0;
@@ -98,6 +99,49 @@ unsigned char * DecodeBMP(unsigned char *bmp_file_content,int&width,int&height){
     }
     return nullptr;
 }
+
+void SwapRGBPixel(unsigned char * pixel,int src0,int src1){
+    unsigned char src0_r=pixel[src0];
+    unsigned char src0_g=pixel[src0+1];
+    unsigned char src0_b=pixel[src0+2];
+    pixel[src0]=pixel[src1];
+    pixel[src0+1]=pixel[src1+1];
+    pixel[src0+2]=pixel[src1+2];
+    pixel[src1]=src0_r;
+    pixel[src1+1]=src0_g;
+    pixel[src1+2]=src0_b;
+}
+
+void SwapRGBAPixel(unsigned char * pixel,int src0,int src1){
+    unsigned char src0_r=pixel[src0];
+    unsigned char src0_g=pixel[src0+1];
+    unsigned char src0_b=pixel[src0+2];
+    unsigned char src0_a=pixel[src0+3];
+    pixel[src0]=pixel[src1];
+    pixel[src0+1]=pixel[src1+1];
+    pixel[src0+2]=pixel[src1+2];
+    pixel[src0+3]=pixel[src1+3];
+    pixel[src1]=src0_r;
+    pixel[src1+1]=src0_g;
+    pixel[src1+2]=src0_b;
+    pixel[src1+3]=src0_a;
+}
+
+void FlipImage(unsigned char * pixel,int width,int height,int channel_count){
+    int half_height=height/2;
+    for (int y = 0; y < half_height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int bottom_pixel_index=y*width+x;
+            int top_pixel_index=(height-y-1)*width+x;
+            if(channel_count==3){
+                SwapRGBPixel(pixel,top_pixel_index*3,bottom_pixel_index*3);
+            }else if(channel_count==4){
+                SwapRGBAPixel(pixel,top_pixel_index*4,bottom_pixel_index*4);
+            }
+        }
+    }
+}
+
 GLuint CreateTexture2D(void*pixel,int width,int height,GLenum gpu_format,GLenum cpu_format){
     GLuint texture;
     glGenTextures(1,&texture);
@@ -124,9 +168,22 @@ GLuint CreateTexture2D(void*pixel,int width,int height,GLenum gpu_format,GLenum 
 GLuint CreateTextureFromFile(const char *path){
     int file_size=0;
     unsigned char* filecontent=LoadFileContent(path,file_size);
-    int image_width,image_height;
-    unsigned char * rgb_pixel=DecodeBMP(filecontent,image_width,image_height);
-    GLuint texture=CreateTexture2D(rgb_pixel,image_width,image_height,GL_RGB,GL_RGB);
+    int image_width,image_height,channel_count;
+    unsigned char * pixel= nullptr;
+    if(strcmp(path+(strlen(path)-4),".png")==0){
+        pixel=stbi_png_load_from_memory(filecontent,file_size,&image_width,&image_height,&channel_count,0);
+    }else if(strcmp(path+(strlen(path)-4),".bmp")==0){
+        pixel=stbi_bmp_load_from_memory(filecontent,file_size,&image_width,&image_height,&channel_count,0);
+    }else{
+        delete [] filecontent;
+        return 0;
+    }
+    __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"CreateTextureFromFile %dx%d %d filesize(%d)",
+                        image_width,image_height,channel_count,file_size);
+    FlipImage(pixel,image_width,image_height,channel_count);
+    GLenum pixel_format=channel_count==3?GL_RGB:GL_RGBA;
+    GLuint texture=CreateTexture2D(pixel,image_width,image_height,pixel_format,pixel_format);
+    delete [] pixel;
     delete [] filecontent;
     return texture;
 }

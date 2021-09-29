@@ -17,6 +17,7 @@ add_library( # Sets the name of the library.
             SHARED
 
             # Provides a relative path to your source file(s).
+            stb_image_aug.c
             Utils.cpp
             Sence.cpp
             native-lib.cpp

@@ -102,7 +102,7 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     viewMatrixLocation=glGetUniformLocation(program,"U_ViewMatrix");
     projectionMatrixLocation=glGetUniformLocation(program,"U_ProjectionMatrix");
 
-    texture=CreateTextureFromFile("front.bmp");
+    texture=CreateTextureFromFile("head.png");
 
     __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"%d,%d,%d,%d",
                         attrPositionLocation,modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation);
