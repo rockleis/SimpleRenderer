@@ -18,10 +18,10 @@ GLuint  ibo;
 GLuint  program;
 GLint   modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation;
 GLint   attrPositionLocation,attrTexCoordLocation;
-GLuint  texture;
+GLuint  texture1,texture2,texture3;
 
 // m v p 矩阵
-glm::mat4 modelMatrix,viewMatrix,projectionMatrix, modelMatrix2;
+glm::mat4 modelMatrix1,viewMatrix,projectionMatrix, modelMatrix2, modelMatrix3;
 
 unsigned char * LoadFileContent(const char *path,int&filesize){
     unsigned char *filecontent=nullptr;
@@ -83,10 +83,11 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     vertices[3].mTexcoord[2]=0.0f;//
     vertices[3].mTexcoord[3]=0.0f;//
 
-    modelMatrix=glm::translate(0.0f,0.0f,-1.0f);
+    modelMatrix1=glm::translate(0.0f,300.0f,-1.0f);
     //modelMatrix=glm::scale(modelMatrix,glm::vec3(4.0, 4.0, 1.30));
 
-    modelMatrix2=glm::translate(50.0f,0.0f,-2.0f);
+    modelMatrix2=glm::translate(300.0f,0.0f,-2.0f);
+    modelMatrix2=glm::translate(-300.0f,0.0f,-2.0f);
 
     //描述了每三个点顺序绘制一个三角形， 节省点 常用来做四边形绘制
     unsigned short indexes[]={ 0,1,2,1,3,2};
@@ -102,7 +103,9 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Init)(
     viewMatrixLocation=glGetUniformLocation(program,"U_ViewMatrix");
     projectionMatrixLocation=glGetUniformLocation(program,"U_ProjectionMatrix");
 
-    texture=CreateTextureFromFile("head.png");
+    texture1=CreateTextureFromFile("head.png");
+    texture2=CreateTextureFromFile("content.png");
+    texture3=CreateTextureFromFile("weixin.png");
 
     __android_log_print(ANDROID_LOG_INFO,ALICE_LOG_TAG,"%d,%d,%d,%d",
                         attrPositionLocation,modelMatrixLocation,viewMatrixLocation,projectionMatrixLocation);
@@ -139,32 +142,21 @@ extern "C" JNIEXPORT void JNICALL JNI_RENDER(Render)(
         jobject MainActivity
 ){
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+
     glUseProgram(program);
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,texture); 
-    glUniform1i(glGetUniformLocation(program,"U_Texture"),0);
-    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
+    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix1));
     glUniformMatrix4fv(viewMatrixLocation,1,GL_FALSE,glm::value_ptr(viewMatrix));
     glUniformMatrix4fv(projectionMatrixLocation,1,GL_FALSE,glm::value_ptr(projectionMatrix));
-    //set attribute
-    {  //把点数据从vbo中找出来，设置给gpu
-        glEnableVertexAttribArray(attrPositionLocation);
-        glVertexAttribPointer(attrPositionLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),0);
-        glEnableVertexAttribArray(attrTexCoordLocation);
-        glVertexAttribPointer(attrTexCoordLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),(void*)(sizeof(float)*4));
-    }
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
-    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
+    commitRendData(vbo,ibo,texture1,modelMatrix1,
+            attrPositionLocation,attrTexCoordLocation,modelMatrixLocation);
+    commitRendData(vbo,ibo,texture2,modelMatrix2,
+                   attrPositionLocation,attrTexCoordLocation,modelMatrixLocation);
+    commitRendData(vbo,ibo,texture3,modelMatrix3,
+                   attrPositionLocation,attrTexCoordLocation,modelMatrixLocation);
 
-    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix2));
-    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0); //dc
-
-
-    glBindBuffer(GL_ARRAY_BUFFER,0);
     glUseProgram(0);
 }

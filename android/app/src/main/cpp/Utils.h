@@ -25,4 +25,8 @@ void UpdateBufferObject(GLuint object,GLenum type,void * data,int size,int offse
 unsigned char * DecodeBMP(unsigned char *bmp_file_content,int&width,int&height);
 GLuint CreateTextureFromFile(const char *path);
 
+
+void commitRendData(GLuint vbo, GLuint ibo, GLuint texture, glm::mat4 modelMatrix,
+                    GLint attrPositionLocation, GLint attrTexCoordLocation, GLint modelMatrixLocation);
+
 #endif //RENDER_UTILS_H

@@ -187,3 +187,28 @@ GLuint CreateTextureFromFile(const char *path){
     delete [] filecontent;
     return texture;
 }
+
+void commitRendData(GLuint vbo, GLuint ibo, GLuint texture, glm::mat4 modelMatrix,
+                    GLint attrPositionLocation, GLint attrTexCoordLocation, GLint modelMatrixLocation)
+{
+    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+    //glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,texture);
+    //glUniform1i(glGetUniformLocation(program,"U_Texture"),0);
+
+    glUniformMatrix4fv(modelMatrixLocation,1,GL_FALSE,glm::value_ptr(modelMatrix));
+    //set attribute
+    //把点数据从vbo中找出来，设置给gpu
+    glEnableVertexAttribArray(attrPositionLocation);
+    glVertexAttribPointer(attrPositionLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),0);
+    glEnableVertexAttribArray(attrTexCoordLocation);
+    glVertexAttribPointer(attrTexCoordLocation,4,GL_FLOAT,GL_FALSE,sizeof(Vertice),(void*)(sizeof(float)*4));
+
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
+    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,0);
+
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+}
